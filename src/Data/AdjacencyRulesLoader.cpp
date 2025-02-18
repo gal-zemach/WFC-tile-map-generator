@@ -57,7 +57,10 @@ void print_rules(const AdjacencyRules& rules)
 				{
 					std::cout << ", ";
 				}
-				std::cout << "]\n";
+				else
+				{
+					std::cout << "]\n";
+				}
 			}
 		}
 	}
