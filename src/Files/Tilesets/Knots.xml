@@ -1,0 +1,174 @@
+<set>
+	<tiles>
+	  <tile name="corner"/>
+	  <tile name="cross"/>
+	  <tile name="empty"/>
+	  <tile name="line"/>
+	  <tile name="t"/>
+	</tiles>
+	<adjacency_rules>
+		<tile name="corner">
+			<side name="top">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="right">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="bottom">
+				<neighbor>empty</neighbor>
+			</side>
+			<side name="left">
+				<neighbor>empty</neighbor>
+			</side>
+		</tile>
+		<tile name="cross 0">
+			<side name="top">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="right">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="bottom">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+			</side>
+			<side name="left">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+		</tile>
+		<tile name="cross 1">
+			<side name="top">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="right">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="bottom">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+			</side>
+			<side name="left">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+		</tile>
+		<tile name="empty">
+			<side name="top">
+				<neighbor>empty</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+			<side name="right">
+				<neighbor>empty</neighbor>
+				<neighbor>line 1</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+			<side name="bottom">
+				<neighbor>empty</neighbor>
+				<neighbor>line 0</neighbor>
+			</side>
+			<side name="left">
+				<neighbor>empty</neighbor>
+				<neighbor>line 1</neighbor>
+			</side>
+		</tile>
+		<tile name="line 0">
+			<side name="top">
+				<neighbor>empty</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+			<side name="right">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="bottom">
+				<neighbor>empty</neighbor>
+				<neighbor>line 0</neighbor>
+			</side>
+			<side name="left">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+		</tile>
+		<tile name="line 1">
+			<side name="top">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="right">
+				<neighbor>empty</neighbor>
+				<neighbor>line 1</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+			<side name="bottom">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+			</side>
+			<side name="left">
+				<neighbor>empty</neighbor>
+				<neighbor>line 1</neighbor>
+			</side>
+		</tile>
+		<tile name="t">
+			<side name="top">
+				<neighbor>empty</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+			<side name="right">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+			</side>
+			<side name="bottom">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 1</neighbor>
+			</side>
+			<side name="left">
+				<neighbor>cross 0</neighbor>
+				<neighbor>cross 1</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
+				<neighbor>corner</neighbor>
+			</side>
+		</tile>
+	</adjacency_rules>
+</set>
