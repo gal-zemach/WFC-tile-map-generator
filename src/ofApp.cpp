@@ -2,17 +2,19 @@
 
 #include <string>
 
-#include "Data/AdjacencyRulesLoader.h"
+#include "Data/TileSet.h"
 
 using std::string;
 
-const string SET_TILES_FOLDER_PATH = "Files/Tilesets/Knots";
-const string SET_XML_PATH = "Files/Tilesets/Knots.xml";
+const string SET_TILES_FOLDER_PATH = "Tilesets/Knots";
+const string SET_XML_PATH = "Tilesets/Knots.xml";
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	AdjacencyRules rules = load_adjacency_rules(SET_XML_PATH);
-	print_rules(rules);
+	std::string xml_path = ofToDataPath(SET_XML_PATH, true);
+	std::string images_folder_path = ofToDataPath(SET_TILES_FOLDER_PATH, true);
+	
+	TileSet tileSet = TileSet(xml_path, images_folder_path);
 }
 
 //--------------------------------------------------------------
