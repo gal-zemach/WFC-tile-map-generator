@@ -9,6 +9,7 @@
 using pugi::xml_node;
 using pugi::xml_document;
 
+// XML attribute names
 static constexpr const char* SET_ATTRIBUTE_NAME = "set";
 static constexpr const char* ADJACENCY_RULES_ATTRIBUTE_NAME = "adjacency_rules";
 static constexpr const char* TILE_ATTRIBUTE_NAME = "tile";
@@ -43,7 +44,6 @@ TileSet::TileImages TileSet::load_set_images(const string& images_folder_path)
 	return images;
 }
 
-// Load adjacency rules from XML
 TileSet::AdjacencyRules TileSet::load_adjacency_rules(const string& xml_path)
 {
 	AdjacencyRules rules;

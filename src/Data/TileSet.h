@@ -10,17 +10,30 @@ using std::string;
 using std::vector;
 using std::unordered_map;
 
+/**
+ * @class TileSet
+ * @brief Represents a loaded tile set with adjacency list used for procedural generation
+ */
 class TileSet
 {
 public:
+	// Constants with keys for the tiles' sides in the adjacency list
 	static constexpr const char* TOP_SIDE_KEY = "top";
 	static constexpr const char* BOTTOM_SIDE_KEY = "bottom";
 	static constexpr const char* LEFT_SIDE_KEY = "left";
 	static constexpr const char* RIGHT_SIDE_KEY = "right";
 	
+	// Maps tile name to it's image
 	using TileImages = unordered_map<string, ofImage>;
+	
+	// Maps tile name to its adjacency list in the for of rules[tile_name][side_constant] = allowed_tile_names_vector
 	using AdjacencyRules = unordered_map<string, unordered_map<string, vector<string>>>;
 	
+	/**
+	 * @brief Constructs a TileSet by loading images and adjacency rules.
+	 * @param xml_path Path to the XML file containing adjacency rules.
+	 * @param images_folder_path Path to the folder containing tile images.
+	 */
 	TileImages images;
 	AdjacencyRules adjacency;
 	
