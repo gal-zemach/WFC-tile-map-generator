@@ -10,56 +10,6 @@ TileMapGenerator::TileMapGenerator(const TileSet& tile_set) : m_tile_set{tile_se
 	}
 }
 
-void TileMapGenerator::DrawTileMap() const
-{
-	const int mult = 3;  // todo: remove after debugging
-	const int tile_width = 10*mult;
-	const int tile_height = 10*mult;
-
-	int image_width = tile_width * m_tile_map[0].size();
-	int image_height = tile_height * m_tile_map.size();
-
-	int x = 0;
-	int y = 0;
-
-	for (const auto& row : m_tile_map) {
-		for (const auto& tile : row) {
-			std::optional<string> tile_name = tile.get_collapsed_name();
-
-			ofSetColor(ofColor::white);
-			if (tile_name.has_value()) {
-				draw_tile(tile_name.value(), x, y, tile_width, tile_height);
-			}
-			else {
-				draw_multiple_possibilities(tile, x, y, tile_width, tile_height);
-			}
-
-			ofSetColor(ofColor::magenta);  // todo: remove after debugging
-			ofDrawRectangle(x, y, 1*mult, 1*mult);
-
-			x = (x + tile_width) % image_width;
-		}
-
-		y = y + tile_height;
-	}
-}
-
-void TileMapGenerator::draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) const {
-	m_tile_set.images.at(tile_name).draw(x, y, tile_width, tile_height);
-}
-
-/**
- * superimpose all possibilities with transparency
- */
-void TileMapGenerator::draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) const {
-	int number_of_possibilities = tile.m_possible_tiles.size();
-	ofSetColor(ofColor::white, 255 / number_of_possibilities);
-
-	for (const string& possibility_name : tile.m_possible_tiles) {
-		draw_tile(possibility_name, x, y, tile_width, tile_height);
-	}
-}
-
 void TileMapGenerator::generate_tile_map(const int width, const int height)
 {
 	init_tile_map(width, height);
@@ -84,7 +34,7 @@ void TileMapGenerator::generate_single_step()
 	}
 
 	// pick the lowest entropy cell
-	Tile& cell_to_collapse = get_next_index_to_collapse(m_tile_map);
+	Tile& cell_to_collapse = get_next_cell_to_collapse(m_tile_map);
 
 	// collapse cell
 	collapse_cell(cell_to_collapse);
@@ -95,18 +45,17 @@ void TileMapGenerator::generate_single_step()
 	m_is_tile_map_finished = count_remaining_cells(m_tile_map) <= 0;
 }
 
-// can find a cell, find all cells have 1, find cell with no options (0)
-Tile& TileMapGenerator::get_next_index_to_collapse(TileMap& cells) const
+Tile& TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) const
 {
 	Tile* output_ptr = nullptr;
-	int minimal_value = m_all_tile_names.size();
+	int minimal_value = m_all_tile_names.size() + 1;
 
 	for (auto& row : cells)
 	{
 		for (auto& cell : row)
 		{
 			int possible_tiles_in_cell = cell.m_possible_tiles.size();
-			if (possible_tiles_in_cell <= minimal_value &&
+			if (possible_tiles_in_cell < minimal_value &&
 				possible_tiles_in_cell > 1)
 			{
 				output_ptr = &cell;
@@ -219,7 +168,8 @@ bool TileMapGenerator::update_domain_according_to_neighbor(Tile& tile_to_update,
 }
 
 /**
- * Either a single cell has domain.size() == 0 (invalid output) or all cells are collapsed (output complete)
+ * Returns the number of cells with multiple tile possibilities
+ * @return The number above or 0 if any cell was found with domain.size() == 0 (invalid output)
  */
 int TileMapGenerator::count_remaining_cells(const TileMap& cells)
 {
@@ -254,4 +204,54 @@ void TileMapGenerator::collapse_cell(Tile& tile)
 
 	tile.m_possible_tiles.clear();
 	tile.m_possible_tiles.insert(name_to_keep);
+}
+
+void TileMapGenerator::DrawTileMap() const
+{
+	const int mult = 3;  // todo: remove after debugging
+	const int tile_width = 10*mult;
+	const int tile_height = 10*mult;
+
+	int image_width = tile_width * m_tile_map[0].size();
+	int image_height = tile_height * m_tile_map.size();
+
+	int x = 0;
+	int y = 0;
+
+	for (const auto& row : m_tile_map) {
+		for (const auto& tile : row) {
+			std::optional<string> tile_name = tile.get_collapsed_name();
+
+			ofSetColor(ofColor::white);
+			if (tile_name.has_value()) {
+				draw_tile(tile_name.value(), x, y, tile_width, tile_height);
+			}
+			else {
+				draw_multiple_possibilities(tile, x, y, tile_width, tile_height);
+			}
+
+			ofSetColor(ofColor::magenta);  // todo: remove after debugging
+			ofDrawRectangle(x, y, 1*mult, 1*mult);
+
+			x = (x + tile_width) % image_width;
+		}
+
+		y = y + tile_height;
+	}
+}
+
+void TileMapGenerator::draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) const {
+	m_tile_set.images.at(tile_name).draw(x, y, tile_width, tile_height);
+}
+
+/**
+ * superimpose all possibilities with transparency
+ */
+void TileMapGenerator::draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) const {
+	int number_of_possibilities = tile.m_possible_tiles.size();
+	ofSetColor(ofColor::white, 255 / number_of_possibilities);
+
+	for (const string& possibility_name : tile.m_possible_tiles) {
+		draw_tile(possibility_name, x, y, tile_width, tile_height);
+	}
 }

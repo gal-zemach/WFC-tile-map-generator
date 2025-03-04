@@ -33,7 +33,8 @@ private:
 	TileMap m_tile_map;
 	bool m_is_tile_map_finished = false;
 
-	Tile& get_next_index_to_collapse(TileMap& cells) const;
+	Tile& get_next_cell_to_collapse(TileMap& cells) const;
+	static void collapse_cell(Tile& tile);
 	void recalculate_constraints(TileMap& cells);
 	deque<QueueEntry> update_domain(const std::pair<int, int>& position, TileMap& cells);
 	bool update_domain_according_to_neighbor(Tile& tile_to_update, const Tile& neighbor, const string& direction_from_neighbor);
@@ -41,6 +42,4 @@ private:
 
 	void draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) const;
 	void draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) const;
-
-	static void collapse_cell(Tile& tile);
 };
