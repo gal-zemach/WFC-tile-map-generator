@@ -26,9 +26,12 @@ void TileMapGenerator::DrawTileMap(const TileMap& tile_map)
 		for (const auto& tile : row) {
 			std::optional<string> tile_name = tile.get_collapsed_name();
 
+			ofSetColor(ofColor::white);
 			if (tile_name.has_value()) {
-				ofSetColor(ofColor::white);
-				m_tile_set.images.at(tile_name.value()).draw(x, y, tile_width, tile_height);
+				draw_tile(tile_name.value(), x, y, tile_width, tile_height);
+			}
+			else {
+				draw_multiple_possibilities(tile, x, y, tile_width, tile_height);
 			}
 
 			ofSetColor(ofColor::magenta);  // todo: remove after debugging
@@ -41,30 +44,57 @@ void TileMapGenerator::DrawTileMap(const TileMap& tile_map)
 	}
 }
 
-TileMapGenerator::TileMap TileMapGenerator::GenerateTileMap(const int width, const int height)
+void TileMapGenerator::draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) {
+	m_tile_set.images.at(tile_name).draw(x, y, tile_width, tile_height);
+}
+
+/**
+ * superimpose all possibilities with transparency
+ */
+void TileMapGenerator::draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) {
+	int number_of_possibilities = tile.m_possible_tiles.size();
+	ofSetColor(ofColor::white, 255 / number_of_possibilities);
+
+	for (const string& possibility_name : tile.m_possible_tiles) {
+		draw_tile(possibility_name, x, y, tile_width, tile_height);
+	}
+}
+
+TileMapGenerator::TileMap TileMapGenerator::generate_tile_map(const int width, const int height)
 {
-	// initialize the grid
-	vector output(height, vector(width, Tile{m_all_tile_names}));  //todo: refactor to 1D ?
+	TileMap output = init_tile_map(width, height);
 	
 	int cells_left = width * height;
 	while (cells_left > 0)
 	{
-		// pick the lowest entropy cell
-		Tile& cell_to_collapse = get_next_index_to_collapse(output);
-
-		// collapse cell
-		collapse_cell(cell_to_collapse);
-
-		// propagate constraints
-		recalculate_constraints(output);
-
-		// check if end condition-reached
-		cells_left = count_uncollapsed_cells(output);
+		generate_single_step(output);
+		cells_left = count_remaining_cells(output);
 	}
 	
 	return output;
 }
 
+TileMapGenerator::TileMap TileMapGenerator::init_tile_map(const int width, const int height)
+{
+	return vector(height, vector(width, Tile{m_all_tile_names}));  //todo: refactor to 1D ?
+}
+
+void TileMapGenerator::generate_single_step(TileMap& tile_map)
+{
+	if (count_remaining_cells(tile_map) <= 0)
+	{
+		return;
+	}
+
+	// pick the lowest entropy cell
+	Tile& cell_to_collapse = get_next_index_to_collapse(tile_map);
+
+	// collapse cell
+	collapse_cell(cell_to_collapse);
+
+	// propagate constraints
+	recalculate_constraints(tile_map);
+}
 
 // can find a cell, find all cells have 1, find cell with no options (0)
 Tile& TileMapGenerator::get_next_index_to_collapse(TileMap& cells) const
@@ -192,9 +222,9 @@ bool TileMapGenerator::update_domain_according_to_neighbor(Tile& tile_to_update,
 /**
  * Either a single cell has domain.size() == 0 (invalid output) or all cells are collapsed (output complete)
  */
-int TileMapGenerator::count_uncollapsed_cells(const TileMap& cells)
+int TileMapGenerator::count_remaining_cells(const TileMap& cells)
 {
-	int uncollapsed_cells = 0;
+	int remaining_cells = 0;
 	for (auto& row : cells)
 	{
 		for (auto& cell : row)
@@ -206,12 +236,12 @@ int TileMapGenerator::count_uncollapsed_cells(const TileMap& cells)
 
 			if (!cell.is_collapsed())
 			{
-				uncollapsed_cells++;
+				remaining_cells++;
 			}
 		}
 	}
 
-	return uncollapsed_cells;
+	return remaining_cells;
 }
 
 void TileMapGenerator::collapse_cell(Tile& tile)

@@ -15,7 +15,9 @@ public:
 
 	TileMapGenerator(const TileSet& tile_set);
 
-	TileMap GenerateTileMap(int width, int height);
+	TileMap generate_tile_map(int width, int height);
+	TileMap init_tile_map(int width, int height);
+	void generate_single_step(TileMap& tile_map);
 
 	void DrawTileMap(const TileMap& tile_map); //todo: save map as member?
 
@@ -32,7 +34,10 @@ private:
 	void recalculate_constraints(TileMap& cells);
 	deque<QueueEntry> update_domain(const std::pair<int, int>& position, TileMap& cells);
 	bool update_domain_according_to_neighbor(Tile& tile_to_update, const Tile& neighbor, const string& direction_from_neighbor);
-	int count_uncollapsed_cells(const TileMap& cells);
+	int count_remaining_cells(const TileMap& cells);
+
+	void draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height);
+	void draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height);
 
 	static void collapse_cell(Tile& tile);
 };
