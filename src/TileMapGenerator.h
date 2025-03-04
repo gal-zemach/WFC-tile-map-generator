@@ -11,8 +11,6 @@
 class TileMapGenerator
 {
 public:
-	using TileMap = vector<vector<Tile>>;
-
 	TileMapGenerator(const TileSet& tile_set);
 
 	void generate_tile_map(int width, int height);
@@ -22,6 +20,8 @@ public:
 	void DrawTileMap() const;
 
 private:
+	using TileMap = vector<vector<Tile>>;
+
 	struct QueueEntry {
 		std::reference_wrapper<Tile> tile;
 		std::pair<int, int> position;
