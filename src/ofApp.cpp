@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include "Data/TileSet.h"
-
 using std::string;
 
 const string SET_TILES_FOLDER_PATH = "Tilesets/Knots";
@@ -14,7 +12,9 @@ void ofApp::setup(){
 	std::string xml_path = ofToDataPath(SET_XML_PATH, true);
 	std::string images_folder_path = ofToDataPath(SET_TILES_FOLDER_PATH, true);
 	
-	TileSet tileSet = TileSet(xml_path, images_folder_path);
+	m_tile_set = std::make_unique<TileSet>(xml_path, images_folder_path);
+	m_tile_map_generator = std::make_unique<TileMapGenerator>(*m_tile_set);
+	m_current_tile_map = std::make_unique<TileMapGenerator::TileMap>(m_tile_map_generator->GenerateTileMap(12, 9));
 }
 
 //--------------------------------------------------------------
@@ -25,6 +25,8 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofBackground(ofColor::black);
+
+	m_tile_map_generator->DrawTileMap(*m_current_tile_map);
 }
 
 //--------------------------------------------------------------

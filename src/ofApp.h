@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Data/TileSet.h"
+#include <TileMapGenerator.h>
+
 #include "ofMain.h"
 
 class ofApp : public ofBaseApp{
@@ -22,5 +25,9 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h) override;
 		void dragEvent(ofDragInfo dragInfo) override;
 		void gotMessage(ofMessage msg) override;
-		
+
+	private:
+		std::unique_ptr<TileSet> m_tile_set;
+		std::unique_ptr<TileMapGenerator> m_tile_map_generator;
+		std::unique_ptr<TileMapGenerator::TileMap> m_current_tile_map;
 };
