@@ -10,19 +10,19 @@ TileMapGenerator::TileMapGenerator(const TileSet& tile_set) : m_tile_set{tile_se
 	}
 }
 
-void TileMapGenerator::DrawTileMap(const TileMap& tile_map)
+void TileMapGenerator::DrawTileMap() const
 {
 	const int mult = 3;  // todo: remove after debugging
 	const int tile_width = 10*mult;
 	const int tile_height = 10*mult;
 
-	int image_width = tile_width * tile_map[0].size();
-	int image_height = tile_height * tile_map.size();
+	int image_width = tile_width * m_tile_map[0].size();
+	int image_height = tile_height * m_tile_map.size();
 
 	int x = 0;
 	int y = 0;
 
-	for (const auto& row : tile_map) {
+	for (const auto& row : m_tile_map) {
 		for (const auto& tile : row) {
 			std::optional<string> tile_name = tile.get_collapsed_name();
 
@@ -44,14 +44,14 @@ void TileMapGenerator::DrawTileMap(const TileMap& tile_map)
 	}
 }
 
-void TileMapGenerator::draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) {
+void TileMapGenerator::draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) const {
 	m_tile_set.images.at(tile_name).draw(x, y, tile_width, tile_height);
 }
 
 /**
  * superimpose all possibilities with transparency
  */
-void TileMapGenerator::draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) {
+void TileMapGenerator::draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) const {
 	int number_of_possibilities = tile.m_possible_tiles.size();
 	ofSetColor(ofColor::white, 255 / number_of_possibilities);
 
@@ -60,40 +60,39 @@ void TileMapGenerator::draw_multiple_possibilities(const Tile& tile, float x, fl
 	}
 }
 
-TileMapGenerator::TileMap TileMapGenerator::generate_tile_map(const int width, const int height)
+void TileMapGenerator::generate_tile_map(const int width, const int height)
 {
-	TileMap output = init_tile_map(width, height);
+	init_tile_map(width, height);
 	
-	int cells_left = width * height;
-	while (cells_left > 0)
+	while (!m_is_tile_map_finished)
 	{
-		generate_single_step(output);
-		cells_left = count_remaining_cells(output);
+		generate_single_step();
 	}
-	
-	return output;
 }
 
-TileMapGenerator::TileMap TileMapGenerator::init_tile_map(const int width, const int height)
+void TileMapGenerator::init_tile_map(const int width, const int height)
 {
-	return vector(height, vector(width, Tile{m_all_tile_names}));  //todo: refactor to 1D ?
+	m_tile_map = vector(height, vector(width, Tile{m_all_tile_names}));  //todo: refactor to 1D ?
+	m_is_tile_map_finished = false;
 }
 
-void TileMapGenerator::generate_single_step(TileMap& tile_map)
+void TileMapGenerator::generate_single_step()
 {
-	if (count_remaining_cells(tile_map) <= 0)
+	if (m_is_tile_map_finished)
 	{
 		return;
 	}
 
 	// pick the lowest entropy cell
-	Tile& cell_to_collapse = get_next_index_to_collapse(tile_map);
+	Tile& cell_to_collapse = get_next_index_to_collapse(m_tile_map);
 
 	// collapse cell
 	collapse_cell(cell_to_collapse);
 
 	// propagate constraints
-	recalculate_constraints(tile_map);
+	recalculate_constraints(m_tile_map);
+
+	m_is_tile_map_finished = count_remaining_cells(m_tile_map) <= 0;
 }
 
 // can find a cell, find all cells have 1, find cell with no options (0)

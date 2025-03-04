@@ -29,5 +29,4 @@ class ofApp : public ofBaseApp{
 	private:
 		std::unique_ptr<TileSet> m_tile_set;
 		std::unique_ptr<TileMapGenerator> m_tile_map_generator;
-		std::unique_ptr<TileMapGenerator::TileMap> m_current_tile_map;
 };
