@@ -17,7 +17,7 @@ void ofApp::setup(){
 
 	// m_tile_map_generator->generate_tile_map(12, 9);
 	m_tile_map_generator->init_tile_map(12, 9);
-	ofSetFrameRate(12);
+	ofSetFrameRate(15);
 }
 
 //--------------------------------------------------------------
@@ -29,8 +29,12 @@ void ofApp::update(){
 void ofApp::draw(){
 	ofBackground(ofColor::black);
 
-	m_tile_map_generator->generate_single_step();
-	m_tile_map_generator->DrawTileMap();
+	if (!m_tile_map_generator->is_tile_map_finished)
+	{
+		m_tile_map_generator->generate_single_step();
+	}
+
+	m_tile_map_generator->draw_tile_map();
 }
 
 //--------------------------------------------------------------

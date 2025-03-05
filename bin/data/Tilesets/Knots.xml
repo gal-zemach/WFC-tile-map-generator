@@ -22,9 +22,12 @@
 			</side>
 			<side name="bottom">
 				<neighbor>empty</neighbor>
+				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
 			</side>
 			<side name="left">
 				<neighbor>empty</neighbor>
+				<neighbor>line 1</neighbor>
 			</side>
 		</tile>
 		<tile name="cross 0">
@@ -93,6 +96,7 @@
 			<side name="bottom">
 				<neighbor>empty</neighbor>
 				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
 			</side>
 			<side name="left">
 				<neighbor>empty</neighbor>
@@ -114,6 +118,7 @@
 			<side name="bottom">
 				<neighbor>empty</neighbor>
 				<neighbor>line 0</neighbor>
+				<neighbor>t</neighbor>
 			</side>
 			<side name="left">
 				<neighbor>cross 0</neighbor>
@@ -161,6 +166,7 @@
 				<neighbor>cross 0</neighbor>
 				<neighbor>cross 1</neighbor>
 				<neighbor>line 1</neighbor>
+				<neighbor>corner</neighbor>
 			</side>
 			<side name="left">
 				<neighbor>cross 0</neighbor>

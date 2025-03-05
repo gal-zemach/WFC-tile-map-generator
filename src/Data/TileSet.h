@@ -27,7 +27,7 @@ public:
 	using TileImages = unordered_map<string, ofImage>;
 	
 	// Maps tile name to its adjacency list in the for of rules[tile_name][side_constant] = allowed_tile_names_vector
-	using AdjacencyRules = unordered_map<string, unordered_map<string, vector<string>>>;
+	using AdjacencyRules = unordered_map<string, unordered_map<string, vector<string>>>;  // todo: should the vector be another mao?
 	
 	/**
 	 * @brief Constructs a TileSet by loading images and adjacency rules.
