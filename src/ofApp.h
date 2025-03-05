@@ -29,4 +29,6 @@ class ofApp : public ofBaseApp{
 	private:
 		std::unique_ptr<TileSet> m_tile_set;
 		std::unique_ptr<TileMapGenerator> m_tile_map_generator;
+
+		bool m_start_animation_pressed = false;
 };

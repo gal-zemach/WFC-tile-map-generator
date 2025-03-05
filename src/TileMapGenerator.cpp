@@ -61,6 +61,8 @@ std::pair<int, int> TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) 
 	int minimal_value = m_all_tile_names.size() + 1;
 	std::optional<std::pair<int, int>> minimal_cell_position;
 
+	std::deque<std::pair<int, int>> minimal_cells;
+
 	for (int i = 0; i < cells.size(); ++i)
 	{
 		for (int j = 0; j < cells[i].size(); ++j)
@@ -68,17 +70,16 @@ std::pair<int, int> TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) 
 			Tile& cell = cells[i][j];
 
 			int possible_tiles_in_cell = cell.domain.size();
-			if (possible_tiles_in_cell < minimal_value &&
+			if (possible_tiles_in_cell <= minimal_value &&
 				possible_tiles_in_cell > 1)
 			{
 				minimal_cell_position = std::make_pair(i, j);
 				minimal_value = possible_tiles_in_cell;
+
+				minimal_cells.push_back(minimal_cell_position.value());
 			}
 		}
 	}
-
-	// // todo: remove random choosing? if leaving it add <=
-	// output_ptr = minimal_tiles[0].tile;
 
 	if (!minimal_cell_position.has_value())
 	{
@@ -86,7 +87,12 @@ std::pair<int, int> TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) 
 		throw std::exception();
 	}
 
-	return minimal_cell_position.value();
+	// return minimal_cell_position.value();
+
+	// todo: remove random choosing? if leaving it add <=
+	int rand_i = rand() % minimal_cells.size();
+	return minimal_cells[rand_i];
+	// return minimal_cells.back();
 }
 
 void TileMapGenerator::collapse_cell(const std::pair<int, int>& position)
@@ -159,7 +165,7 @@ std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_doma
 	}
 
 	// top neighbor
-	if (i - 1 > 0
+	if (i - 1 >= 0
 		&& update_neighbor_domain(tile, cells[i-1][j], TileSet::BOTTOM_SIDE_KEY))
 	{
 		changed_tiles.push_back(QueueEntry{cells[i-1][j], std::make_pair(i-1, j)});
@@ -173,7 +179,7 @@ std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_doma
 	}
 
 	// left neighbor
-	if (j - 1 > 0
+	if (j - 1 >= 0
 		&& update_neighbor_domain(tile, cells[i][j-1], TileSet::RIGHT_SIDE_KEY))
 	{
 		changed_tiles.push_back(QueueEntry{cells[i][j-1], std::make_pair(i, j-1)});
@@ -189,31 +195,23 @@ bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& ne
 		return false;
 	}
 
-	std::deque<string> unsupported_neighbor_tiles;
-	// bool neighbor_started_collapsed = neighbor.domain.size() == 1;
-
 	// // todo: for debugging
-	// std::unordered_set<string> neighbor_domain_backup;
-	// vector<string> neighbor_adjacency_rules_backup;
-	// if (neighbor_started_collapsed) {
-	// 	neighbor_domain_backup = neighbor.domain;
-	// 	neighbor_adjacency_rules_backup = m_tile_set.adjacency.at(*neighbor.domain.begin()).at(direction_from_neighbor);
-	// }
+	std::unordered_set<string> neighbor_domain_backup = neighbor.domain;
+	vector<string> neighbor_adjacency_rules_backup = m_tile_set.adjacency.at(*neighbor.domain.begin()).at(direction_from_neighbor);
+
+	std::deque<string> unsupported_neighbor_tiles;
 
 	for (const auto& neighbor_tile_name : neighbor.domain)
 	{
+		vector<string> neighbor_adjacency_rules = m_tile_set.adjacency.at(neighbor_tile_name).at(direction_from_neighbor);
 		bool is_supported = false;
 
-		for (auto& current_tile_name : current_tile.domain)
+		for (auto& allowed_neighbor : neighbor_adjacency_rules)
 		{
-			vector<string> neighbor_adjacency_rules = m_tile_set.adjacency.at(neighbor_tile_name).at(direction_from_neighbor);
-			for (auto& allowed_name : neighbor_adjacency_rules)
+			if (current_tile.domain.contains(allowed_neighbor))
 			{
-				if (allowed_name == current_tile_name)
-				{
-					is_supported = true;
-					break;
-				}
+				is_supported = true;
+				break;
 			}
 		}
 

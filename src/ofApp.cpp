@@ -17,7 +17,7 @@ void ofApp::setup(){
 
 	// m_tile_map_generator->generate_tile_map(12, 9);
 	m_tile_map_generator->init_tile_map(12, 9);
-	ofSetFrameRate(15);
+	ofSetFrameRate(6);
 }
 
 //--------------------------------------------------------------
@@ -29,8 +29,9 @@ void ofApp::update(){
 void ofApp::draw(){
 	ofBackground(ofColor::black);
 
-	if (!m_tile_map_generator->is_tile_map_finished)
+	if (m_start_animation_pressed && !m_tile_map_generator->is_tile_map_finished)
 	{
+		// m_mouse_pressed = false;
 		m_tile_map_generator->generate_single_step();
 	}
 
@@ -44,7 +45,9 @@ void ofApp::exit(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	if (key == OF_KEY_RIGHT) {
+		m_start_animation_pressed = true;
+	}
 }
 
 //--------------------------------------------------------------
