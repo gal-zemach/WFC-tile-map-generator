@@ -6,7 +6,7 @@ TileMapGenerator::TileMapGenerator(const TileSet& tile_set) : m_tile_set{tile_se
 {
 	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
-	for (const auto& key : m_tile_set.images | std::views::keys)
+	for (const auto& key : m_tile_set.adjacency | std::views::keys)
 	{
 		m_all_tile_names.insert(key);
 	}
@@ -280,8 +280,8 @@ void TileMapGenerator::draw_tile_map() const
 				draw_multiple_possibilities(tile, x, y, tile_width, tile_height);
 			}
 
-			ofSetColor(ofColor::magenta);  // todo: remove after debugging
-			ofDrawRectangle(x, y, 1*mult, 1*mult);
+			// ofSetColor(ofColor::magenta);  // todo: remove after debugging
+			// ofDrawRectangle(x, y, 1*mult, 1*mult);
 
 			x = (x + tile_width) % image_width;
 		}
@@ -291,7 +291,14 @@ void TileMapGenerator::draw_tile_map() const
 }
 
 void TileMapGenerator::draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) const {
-	m_tile_set.images.at(tile_name).draw(x, y, tile_width, tile_height);
+
+	const int delim_pos = tile_name.find("_");
+	string base_name = tile_name.substr(0, delim_pos);
+	const string rotation_str = tile_name.substr(delim_pos + 1, tile_name.length() - delim_pos - 1);
+	int rotation = rotation_str.empty() ? 0 : atoi(rotation_str.c_str());
+
+	const ofImage& image = m_tile_set.images.at(base_name);
+	draw_image(image, x, y, tile_width, tile_height, rotation);
 }
 
 /**
@@ -304,4 +311,17 @@ void TileMapGenerator::draw_multiple_possibilities(const Tile& tile, float x, fl
 	for (const string& possibility_name : tile.domain) {
 		draw_tile(possibility_name, x, y, tile_width, tile_height);
 	}
+}
+
+void TileMapGenerator::draw_image(const ofImage& image, float x, float y, float width, float height, int rotation) {
+	ofPushMatrix();
+	// Move the origin to the center of the destination rectangle.
+	ofTranslate(x + width / 2, y + height / 2);
+
+	// Apply the rotation (in degrees).
+	ofRotateDeg(rotation);
+
+	// Draw the image centered at the origin.
+	image.draw(-width / 2, -height / 2, width, height);
+	ofPopMatrix();
 }

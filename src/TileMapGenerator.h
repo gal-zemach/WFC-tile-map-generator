@@ -46,7 +46,9 @@ private:
 
 	int count_remaining_cells(const TileMap& cells);
 
+	void draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) const;
+
 	void draw_tile(const string& tile_name, float x, float y, float tile_width, float tile_height) const;
 
-	void draw_multiple_possibilities(const Tile& tile, float x, float y, float tile_width, float tile_height) const;
+	static void draw_image(const ofImage& image, float x, float y, float width, float height, int rotation);
 };

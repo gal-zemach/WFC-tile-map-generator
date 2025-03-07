@@ -11,16 +11,57 @@ using pugi::xml_document;
 
 // XML attribute names
 static constexpr const char* SET_ATTRIBUTE_NAME = "set";
-static constexpr const char* ADJACENCY_RULES_ATTRIBUTE_NAME = "adjacency_rules";
+static constexpr const char* TILES_ATTRIBUTE_NAME = "tiles";
+static constexpr const char* SYMMETRY_ATTRIBUTE_NAME = "symmetry";
+static constexpr const char* EDGES_ATTRIBUTE_NAME = "edges";
+static constexpr const char* EDGE_ATTRIBUTE_NAME = "edge";
+static constexpr const char* VALUE_ATTRIBUTE_NAME = "value";
+
 static constexpr const char* TILE_ATTRIBUTE_NAME = "tile";
 static constexpr const char* NAME_ATTRIBUTE_NAME = "name";
 static constexpr const char* SIDE_ATTRIBUTE_NAME = "side";
-static constexpr const char* NEIGHBOR_ATTRIBUTE_NAME = "neighbor";
 
 TileSet::TileSet(const string& xml_path, const string& images_folder_path)
 {
+	set_data = load_set_data(xml_path);
+	adjacency = load_adjacency_rules(set_data);
+
 	images = load_set_images(images_folder_path);
-	adjacency = load_adjacency_rules(xml_path);
+}
+
+TileSet::SetData TileSet::load_set_data(const string& xml_path)
+{
+	SetData set_data;
+	xml_document doc;
+
+	if (!doc.load_file(xml_path.c_str()))
+	{
+		std::cerr << "Failed to load XML file: " << xml_path << std::endl;
+		return set_data;
+	}
+
+	xml_node set_parent = doc.child(SET_ATTRIBUTE_NAME);
+	xml_node tiles_parent = set_parent.child(TILES_ATTRIBUTE_NAME);
+
+	for (xml_node tile : tiles_parent.children(TILE_ATTRIBUTE_NAME))
+	{
+		string tile_name = tile.attribute(NAME_ATTRIBUTE_NAME).value();
+		string symmetry_type = tile.attribute(SYMMETRY_ATTRIBUTE_NAME).value();
+
+		unordered_map<string, string> edges_map;
+		xml_node edges_parent = tile.child(EDGES_ATTRIBUTE_NAME);
+
+		for (xml_node edge : edges_parent.children(EDGE_ATTRIBUTE_NAME))
+		{
+			string edge_side = edge.attribute(SIDE_ATTRIBUTE_NAME).value();
+			string edge_value = edge.attribute(VALUE_ATTRIBUTE_NAME).value();
+			edges_map[edge_side] = edge_value;
+		}
+
+		set_data.tiles[tile_name] = TileData{symmetry_type, edges_map};
+	}
+
+	return set_data;
 }
 
 TileSet::TileImages TileSet::load_set_images(const string& images_folder_path)
@@ -44,35 +85,59 @@ TileSet::TileImages TileSet::load_set_images(const string& images_folder_path)
 	return images;
 }
 
-TileSet::AdjacencyRules TileSet::load_adjacency_rules(const string& xml_path)
+unordered_map<string, string> TileSet::rotate_edges_map(const unordered_map<string, string>& edges_map, int rotate_by)
 {
-	AdjacencyRules rules;
-	xml_document doc;
-	
-	if (!doc.load_file(xml_path.c_str()))
-	{
-		std::cerr << "Failed to load XML file: " << xml_path << std::endl;
-		return rules;
+	unordered_map<string, string> shifted_edges;
+	for (int i = 0; i < SIDES.size(); i++) {
+		shifted_edges[SIDES[(i + rotate_by/90) % SIDES.size()]] = edges_map.at(SIDES[i]);
 	}
-	
-	xml_node set_parent = doc.child(SET_ATTRIBUTE_NAME);
-	xml_node adjacency_rules_parent = set_parent.child(ADJACENCY_RULES_ATTRIBUTE_NAME);
-	
-	for (xml_node tile_rules : adjacency_rules_parent.children(TILE_ATTRIBUTE_NAME))
+
+	return shifted_edges;
+}
+
+void TileSet::add_tile_rotations(SetData& set_data, const pair<string, TileData>& tile_data)
+{
+	int n = symmetry_type_to_rotations.at(tile_data.second.symmetry_type);
+
+	for (int i = 0; i < n; i++)
 	{
-		string tile_name = tile_rules.attribute(NAME_ATTRIBUTE_NAME).value();
-		
-		for (xml_node side : tile_rules.children(SIDE_ATTRIBUTE_NAME))
+		string tile_name = tile_data.first;
+		int tile_rotation = i*360/n;
+
+		if (n > 1) {
+			tile_name += "_" + std::to_string(tile_rotation);
+		}
+
+		set_data.tiles[tile_name] = TileData{
+			tile_data.second.symmetry_type,
+			rotate_edges_map(tile_data.second.edges, tile_rotation)
+		};
+	}
+}
+
+TileSet::AdjacencyRules TileSet::load_adjacency_rules(const SetData& set_data)
+{
+	SetData set_data_with_symmetry;
+	for (const auto& tile : set_data.tiles)
+	{
+		add_tile_rotations(set_data_with_symmetry, tile);
+	}
+
+	// For each tile, adds to the adjacency list all tile names with an opposite matching side
+	AdjacencyRules rules;
+	for (const auto& set_tile : set_data_with_symmetry.tiles)
+	{
+		for (const auto& neighbor_tile : set_data_with_symmetry.tiles)
 		{
-			string side_name = side.attribute(NAME_ATTRIBUTE_NAME).value();
-			vector<string> allowed_neighbors;
-			
-			for (xml_node neighbor : side.children(NEIGHBOR_ATTRIBUTE_NAME))
+			for (int i=0; i < SIDES.size(); i++)
 			{
-				allowed_neighbors.push_back(neighbor.child_value());
+				string set_tile_edge_value = set_tile.second.edges.at(SIDES[i]);
+				string neighbor_tile_opposite_edge_value = neighbor_tile.second.edges.at(SIDES[(i+2) % SIDES.size()]);
+				if (set_tile_edge_value == neighbor_tile_opposite_edge_value)
+				{
+					rules[set_tile.first][SIDES[i]].push_back(neighbor_tile.first);
+				}
 			}
-			
-			rules[tile_name][side_name] = allowed_neighbors;
 		}
 	}
 	
