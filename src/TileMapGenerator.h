@@ -40,6 +40,8 @@ private:
 
 	void collapse_cell(const std::pair<int, int>& position);
 
+	string random_domain_tile(const Tile& tile) const;
+
 	void recalculate_constraints(TileMap& cells, std::deque<QueueEntry>& tiles_to_update_queue);
 
 	deque<QueueEntry> update_neighbors_domain(const std::pair<int, int>& position, TileMap& cells);

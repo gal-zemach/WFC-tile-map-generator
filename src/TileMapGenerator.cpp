@@ -103,14 +103,40 @@ void TileMapGenerator::collapse_cell(const std::pair<int, int>& position)
 {
 	Tile& tile = m_tile_map[position.first][position.second];
 
-	int i_to_keep = rand() % tile.domain.size();
-
-	auto it = tile.domain.begin();
-	std::advance(it, i_to_keep);
-	string name_to_keep = *it;
+	string selected_tile = random_domain_tile(tile);
 
 	tile.domain.clear();
-	tile.domain.insert(name_to_keep);
+	tile.domain.insert(selected_tile);
+}
+
+string TileMapGenerator::random_domain_tile(const Tile& tile) const
+{
+	vector<std::pair<string, float>> tile_weights;
+	float total_weight = 0;
+	for (const auto& cell : tile.domain)
+	{
+		float weight = m_tile_set.get_weight(cell);
+
+		total_weight += weight;
+		tile_weights.emplace_back(cell, weight);
+	}
+
+	float random_value = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) + 1.0f);
+	random_value *= total_weight;
+
+	float cumulative = 0;
+	int selected_i = 0;
+	for (int i = 0; i < tile_weights.size(); ++i)
+	{
+		cumulative += tile_weights[i].second / total_weight;
+		if (random_value < cumulative)
+		{
+			selected_i = i;
+			break;
+		}
+	}
+
+	return tile_weights[selected_i].first;
 }
 
 void TileMapGenerator::recalculate_constraints(TileMap& cells, std::deque<QueueEntry>& tiles_to_update_queue)
