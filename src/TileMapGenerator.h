@@ -36,6 +36,8 @@ private:
 
 	std::pair<int, int> get_next_cell_to_collapse(TileMap& cells) const;
 
+	float compute_cell_entropy(const Tile& cell) const;
+
 	void collapse_cell(const std::pair<int, int>& position);
 
 	void recalculate_constraints(TileMap& cells, std::deque<QueueEntry>& tiles_to_update_queue);

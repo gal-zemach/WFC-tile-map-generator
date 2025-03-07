@@ -38,8 +38,12 @@ public:
 	AdjacencyRules adjacency;
 	
 	TileSet(const string& xml_path, const string& images_folder_path);
+
+	float get_weight(const string& tile_name) const {return m_set_data.tiles.at(tile_name).weight;}
 	
 private:
+	static constexpr float DEFAULT_WEIGHT = 1;
+
 	static constexpr const char* SYMMETRY_TYPE_I = "I";
 	static constexpr const char* SYMMETRY_TYPE_L = "L";
 	static constexpr const char* SYMMETRY_TYPE_T = "T";
@@ -56,6 +60,7 @@ private:
 	struct TileData
 	{
 		string symmetry_type;
+		float weight;
 		unordered_map<string, string> edges;
 	};
 
@@ -64,9 +69,10 @@ private:
 		unordered_map<string, TileData> tiles;
 	};
 
-	SetData set_data;
+	SetData m_set_data;
 
-	static SetData load_set_data(const string& xml_path);
+	static SetData parse_set_data(const string& xml_path);
+	static SetData add_rotated_tiles(const SetData& set_data);
 
 	static TileImages load_set_images(const string& images_folder_path);
 	static AdjacencyRules load_adjacency_rules(const SetData& set_data);

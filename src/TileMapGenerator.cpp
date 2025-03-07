@@ -58,10 +58,8 @@ void TileMapGenerator::generate_single_step()
 
 std::pair<int, int> TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) const
 {
-	int minimal_value = m_all_tile_names.size() + 1;
+	float minimal_value = std::numeric_limits<int>::max();
 	std::optional<std::pair<int, int>> minimal_cell_position;
-
-	std::deque<std::pair<int, int>> minimal_cells;
 
 	for (int i = 0; i < cells.size(); ++i)
 	{
@@ -69,14 +67,15 @@ std::pair<int, int> TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) 
 		{
 			Tile& cell = cells[i][j];
 
-			int possible_tiles_in_cell = cell.domain.size();
-			if (possible_tiles_in_cell <= minimal_value &&
-				possible_tiles_in_cell > 1)
+			if (cell.is_collapsed()) {
+				continue;
+			}
+
+			float cell_entropy = compute_cell_entropy(cell);
+			if (cell_entropy < minimal_value)
 			{
 				minimal_cell_position = std::make_pair(i, j);
-				minimal_value = possible_tiles_in_cell;
-
-				minimal_cells.push_back(minimal_cell_position.value());
+				minimal_value = cell_entropy;
 			}
 		}
 	}
@@ -87,12 +86,19 @@ std::pair<int, int> TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) 
 		throw std::exception();
 	}
 
-	// return minimal_cell_position.value();
+	return minimal_cell_position.value();
+}
 
-	// todo: remove random choosing? if leaving it add <=
-	int rand_i = rand() % minimal_cells.size();
-	return minimal_cells[rand_i];
-	// return minimal_cells.back();
+float TileMapGenerator::compute_cell_entropy(const Tile& cell) const
+{
+	float entropy = 0;
+	for (const auto& tile_name : cell.domain)
+	{
+		float w = m_tile_set.get_weight(tile_name);
+		entropy -= w * log2(w);
+	}
+
+	return entropy;
 }
 
 void TileMapGenerator::collapse_cell(const std::pair<int, int>& position)
@@ -100,7 +106,6 @@ void TileMapGenerator::collapse_cell(const std::pair<int, int>& position)
 	Tile& tile = m_tile_map[position.first][position.second];
 
 	int i_to_keep = rand() % tile.domain.size();
-	// i_to_keep = 0;
 
 	auto it = tile.domain.begin();
 	std::advance(it, i_to_keep);
@@ -195,12 +200,7 @@ bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& ne
 		return false;
 	}
 
-	// // todo: for debugging
-	std::unordered_set<string> neighbor_domain_backup = neighbor.domain;
-	vector<string> neighbor_adjacency_rules_backup = m_tile_set.adjacency.at(*neighbor.domain.begin()).at(direction_from_neighbor);
-
 	std::deque<string> unsupported_neighbor_tiles;
-
 	for (const auto& neighbor_tile_name : neighbor.domain)
 	{
 		vector<string> neighbor_adjacency_rules = m_tile_set.adjacency.at(neighbor_tile_name).at(direction_from_neighbor);
@@ -226,7 +226,6 @@ bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& ne
 		neighbor.domain.erase(unsupported_tile);
 	}
 
-	// return neighbor.domain.size() == 1 && !neighbor_started_collapsed;
 	return neighbor.domain.size() == 1;
 }
 
@@ -263,7 +262,6 @@ void TileMapGenerator::draw_tile_map() const
 	const int tile_height = 10*mult;
 
 	int image_width = tile_width * m_tile_map[0].size();
-	int image_height = tile_height * m_tile_map.size();
 
 	int x = 0;
 	int y = 0;
@@ -279,9 +277,6 @@ void TileMapGenerator::draw_tile_map() const
 			else {
 				draw_multiple_possibilities(tile, x, y, tile_width, tile_height);
 			}
-
-			// ofSetColor(ofColor::magenta);  // todo: remove after debugging
-			// ofDrawRectangle(x, y, 1*mult, 1*mult);
 
 			x = (x + tile_width) % image_width;
 		}
