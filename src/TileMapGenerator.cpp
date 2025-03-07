@@ -35,8 +35,6 @@ void TileMapGenerator::generate_single_step()
 		return;
 	}
 
-	std::cout << "step started." << std::endl;
-
 	// pick the lowest entropy cell
 	std::pair<int, int> position_to_collapse = get_next_cell_to_collapse(m_tile_map);
 
@@ -117,17 +115,6 @@ void TileMapGenerator::collapse_cell(const std::pair<int, int>& position)
 
 void TileMapGenerator::recalculate_constraints(TileMap& cells, std::deque<QueueEntry>& tiles_to_update_queue)
 {
-	std::cout << "starting with " << tiles_to_update_queue.size() << " in queue: ";
-	if (tiles_to_update_queue.size() > 0) {
-		std::cout << "[";
-		for (auto& tile : tiles_to_update_queue)
-		{
-			std::cout << "(" << tile.position.first << "," << tile.position.second << ")";
-		}
-		std::cout << "]";
-	}
-	std::cout << std::endl;
-
 	// propagate constraints: update cell's domain & add neighbors if changed
 	while (!tiles_to_update_queue.empty())
 	{
@@ -136,23 +123,9 @@ void TileMapGenerator::recalculate_constraints(TileMap& cells, std::deque<QueueE
 
 		std::deque<QueueEntry> changed_tiles = update_neighbors_domain(position, cells);
 
-		std::cout << "for (" << position.first << "," << position.second << ") adding " << changed_tiles.size() << ": ";
-
-		if (changed_tiles.size() > 0) {
-			std::cout << "[";
-			for (auto& changed : changed_tiles)
-			{
-				std::cout << "(" << changed.position.first << "," << changed.position.second << ")";
-			}
-			std::cout << "]";
-		}
-		std::cout << std::endl;
-
 		tiles_to_update_queue.insert(tiles_to_update_queue.end(), changed_tiles.begin(), changed_tiles.end());
 		changed_tiles.clear();
 	}
-
-	std::cout << "step done.\n" << std::endl;
 }
 
 std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_domain(const std::pair<int, int>& position, TileMap& cells)

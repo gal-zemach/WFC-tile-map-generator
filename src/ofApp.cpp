@@ -29,6 +29,13 @@ void ofApp::update(){
 void ofApp::draw(){
 	ofBackground(ofColor::black);
 
+	if (m_reset_pressed)
+	{
+		m_reset_pressed = false;
+		m_start_animation_pressed = false;
+		m_tile_map_generator->init_tile_map(TILE_MAP_WIDTH, TILE_MAP_HEIGHT);
+	}
+
 	if (m_erase_map_pressed)
 	{
 		m_erase_map_pressed = false;
@@ -37,7 +44,6 @@ void ofApp::draw(){
 
 	if (m_start_animation_pressed && !m_tile_map_generator->is_tile_map_finished)
 	{
-		// m_mouse_pressed = false;
 		m_tile_map_generator->generate_single_step();
 	}
 
@@ -57,6 +63,10 @@ void ofApp::keyPressed(int key){
 
 	if (key == 'e') {
 		m_erase_map_pressed = true;
+	}
+
+	if (key == 'r') {
+		m_reset_pressed = true;
 	}
 }
 
