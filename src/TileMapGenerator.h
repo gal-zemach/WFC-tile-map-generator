@@ -27,7 +27,7 @@ private:
 
 	struct QueueEntry {
 		std::reference_wrapper<Tile> tile;
-		int position;
+		int idx;
 	};
 
 	int m_output_width, m_output_height;
@@ -37,19 +37,19 @@ private:
 	TileMap m_tile_map;
 	SupportCount m_support_count;
 
-	int idx(const int row, const int col) const {return row * m_output_width + col;}
+	int get_idx(const int row, const int col) const {return row * m_output_width + col;}
 
 	int get_next_cell_to_collapse(TileMap& cells) const;
 
 	float compute_cell_entropy(const Tile& cell) const;
 
-	void collapse_cell(int position);
+	void collapse_cell(int idx);
 
 	string random_domain_tile(const Tile& tile) const;
 
 	void recalculate_constraints(TileMap& cells, std::deque<QueueEntry>& tiles_to_update_queue);
 
-	deque<QueueEntry> update_neighbors_domain(int position, TileMap& cells);
+	deque<QueueEntry> update_neighbors_domain(int idx, TileMap& cells);
 
 	bool update_neighbor_domain(const Tile& current_tile, Tile& neighbor, const string& direction_from_neighbor);
 

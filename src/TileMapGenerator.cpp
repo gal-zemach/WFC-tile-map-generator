@@ -39,12 +39,12 @@ void TileMapGenerator::generate_single_step()
 	}
 
 	// pick the lowest entropy cell
-	int position_to_collapse = get_next_cell_to_collapse(m_tile_map);
+	int idx_to_collapse = get_next_cell_to_collapse(m_tile_map);
 
 	// collapse cell
-	collapse_cell(position_to_collapse);
+	collapse_cell(idx_to_collapse);
 
-	QueueEntry collapsed_cell = QueueEntry{m_tile_map[position_to_collapse],position_to_collapse};
+	QueueEntry collapsed_cell = QueueEntry{m_tile_map[idx_to_collapse],idx_to_collapse};
 
 	// propagate constraints
 	std::deque<QueueEntry> tiles_to_update_queue{collapsed_cell};
@@ -57,7 +57,7 @@ void TileMapGenerator::generate_single_step()
 int TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) const
 {
 	float minimal_value = std::numeric_limits<int>::max();
-	std::optional<int> minimal_cell_position;
+	std::optional<int> minimal_cell_idx;
 
 	for (int i = 0; i < cells.size(); ++i)
 	{
@@ -70,18 +70,18 @@ int TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) const
 		float cell_entropy = compute_cell_entropy(cell);
 		if (cell_entropy < minimal_value)
 		{
-			minimal_cell_position = i;
+			minimal_cell_idx = i;
 			minimal_value = cell_entropy;
 		}
 	}
 
-	if (!minimal_cell_position.has_value())
+	if (!minimal_cell_idx.has_value())
 	{
 		std::cerr << "No cell to collapse" << std::endl;
 		throw std::exception();
 	}
 
-	return minimal_cell_position.value();
+	return minimal_cell_idx.value();
 }
 
 float TileMapGenerator::compute_cell_entropy(const Tile& cell) const
@@ -96,9 +96,9 @@ float TileMapGenerator::compute_cell_entropy(const Tile& cell) const
 	return entropy;
 }
 
-void TileMapGenerator::collapse_cell(const int position)
+void TileMapGenerator::collapse_cell(const int idx)
 {
-	Tile& tile = m_tile_map[position];
+	Tile& tile = m_tile_map[idx];
 
 	string selected_tile = random_domain_tile(tile);
 
@@ -141,46 +141,46 @@ void TileMapGenerator::recalculate_constraints(TileMap& cells, std::deque<QueueE
 	// propagate constraints: update cell's domain & add neighbors if changed
 	while (!tiles_to_update_queue.empty())
 	{
-		auto [tile, position] = tiles_to_update_queue.front();
+		auto [tile, idx] = tiles_to_update_queue.front();
 		tiles_to_update_queue.pop_front();
 
-		std::deque<QueueEntry> changed_tiles = update_neighbors_domain(position, cells);
+		std::deque<QueueEntry> changed_tiles = update_neighbors_domain(idx, cells);
 
 		tiles_to_update_queue.insert(tiles_to_update_queue.end(), changed_tiles.begin(), changed_tiles.end());
 		changed_tiles.clear();
 	}
 }
 
-std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_domain(const int position, TileMap& cells)
+std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_domain(const int idx, TileMap& cells)
 {
-	const Tile& tile = cells[position];
+	const Tile& tile = cells[idx];
 	std::deque<QueueEntry> changed_tiles;
 
-	const int& row = position / m_output_width;
-	const int& col = position % m_output_width;
+	const int& row = idx / m_output_width;
+	const int& col = idx % m_output_width;
 
-	if (const int bottom_idx = idx(row+1, col); row + 1 < m_output_height
+	if (const int bottom_idx = get_idx(row+1, col); row + 1 < m_output_height
 		&& update_neighbor_domain(tile, cells[bottom_idx], TileSet::TOP_SIDE_KEY))
 	{
 		changed_tiles.push_back(QueueEntry{cells[bottom_idx], bottom_idx});
 	}
 
 	// top neighbor
-	if (const int top_idx = idx(row-1, col); row - 1 >= 0
+	if (const int top_idx = get_idx(row-1, col); row - 1 >= 0
 		&& update_neighbor_domain(tile, cells[top_idx], TileSet::BOTTOM_SIDE_KEY))
 	{
 		changed_tiles.push_back(QueueEntry{cells[top_idx], top_idx});
 	}
 
 	// right neighbor
-	if (const int right_idx = idx(row, col+1); col + 1 < m_output_width
+	if (const int right_idx = get_idx(row, col+1); col + 1 < m_output_width
 		&& update_neighbor_domain(tile, cells[right_idx], TileSet::LEFT_SIDE_KEY))
 	{
 		changed_tiles.push_back(QueueEntry{cells[right_idx], right_idx});
 	}
 
 	// left neighbor
-	if (const int left_idx = idx(row, col-1); col - 1 >= 0
+	if (const int left_idx = get_idx(row, col-1); col - 1 >= 0
 		&& update_neighbor_domain(tile, cells[left_idx], TileSet::RIGHT_SIDE_KEY))
 	{
 		changed_tiles.push_back(QueueEntry{cells[left_idx], left_idx});
