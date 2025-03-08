@@ -22,29 +22,34 @@ public:
 	void draw_tile_map() const;
 
 private:
-	using TileMap = vector<vector<Tile>>;
+	using TileMap = vector<Tile>;
+	using SupportCount = vector<vector<unordered_map<string, int>>>;
 
 	struct QueueEntry {
 		std::reference_wrapper<Tile> tile;
-		std::pair<int, int> position;
+		int position;
 	};
 
+	int m_output_width, m_output_height;
 	const TileSet& m_tile_set;
 	unordered_set<string> m_all_tile_names;
 
 	TileMap m_tile_map;
+	SupportCount m_support_count;
 
-	std::pair<int, int> get_next_cell_to_collapse(TileMap& cells) const;
+	int idx(const int row, const int col) const {return row * m_output_width + col;}
+
+	int get_next_cell_to_collapse(TileMap& cells) const;
 
 	float compute_cell_entropy(const Tile& cell) const;
 
-	void collapse_cell(const std::pair<int, int>& position);
+	void collapse_cell(int position);
 
 	string random_domain_tile(const Tile& tile) const;
 
 	void recalculate_constraints(TileMap& cells, std::deque<QueueEntry>& tiles_to_update_queue);
 
-	deque<QueueEntry> update_neighbors_domain(const std::pair<int, int>& position, TileMap& cells);
+	deque<QueueEntry> update_neighbors_domain(int position, TileMap& cells);
 
 	bool update_neighbor_domain(const Tile& current_tile, Tile& neighbor, const string& direction_from_neighbor);
 

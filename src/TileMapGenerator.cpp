@@ -24,7 +24,10 @@ void TileMapGenerator::generate_tile_map(const int width, const int height)
 
 void TileMapGenerator::init_tile_map(const int width, const int height)
 {
-	m_tile_map = vector(height, vector(width, Tile{m_all_tile_names}));  //todo: refactor to 1D ?
+	m_output_width = width;
+	m_output_height = height;
+
+	m_tile_map = vector(width * height, Tile{m_all_tile_names});
 	is_tile_map_finished = false;
 }
 
@@ -36,15 +39,12 @@ void TileMapGenerator::generate_single_step()
 	}
 
 	// pick the lowest entropy cell
-	std::pair<int, int> position_to_collapse = get_next_cell_to_collapse(m_tile_map);
+	int position_to_collapse = get_next_cell_to_collapse(m_tile_map);
 
 	// collapse cell
 	collapse_cell(position_to_collapse);
 
-	QueueEntry collapsed_cell = QueueEntry{
-		m_tile_map[position_to_collapse.first][position_to_collapse.second],
-		position_to_collapse
-	};
+	QueueEntry collapsed_cell = QueueEntry{m_tile_map[position_to_collapse],position_to_collapse};
 
 	// propagate constraints
 	std::deque<QueueEntry> tiles_to_update_queue{collapsed_cell};
@@ -54,27 +54,24 @@ void TileMapGenerator::generate_single_step()
 	is_tile_map_finished = remaining_cells <= 0;
 }
 
-std::pair<int, int> TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) const
+int TileMapGenerator::get_next_cell_to_collapse(TileMap& cells) const
 {
 	float minimal_value = std::numeric_limits<int>::max();
-	std::optional<std::pair<int, int>> minimal_cell_position;
+	std::optional<int> minimal_cell_position;
 
 	for (int i = 0; i < cells.size(); ++i)
 	{
-		for (int j = 0; j < cells[i].size(); ++j)
+		Tile& cell = cells[i];
+
+		if (cell.is_collapsed()) {
+			continue;
+		}
+
+		float cell_entropy = compute_cell_entropy(cell);
+		if (cell_entropy < minimal_value)
 		{
-			Tile& cell = cells[i][j];
-
-			if (cell.is_collapsed()) {
-				continue;
-			}
-
-			float cell_entropy = compute_cell_entropy(cell);
-			if (cell_entropy < minimal_value)
-			{
-				minimal_cell_position = std::make_pair(i, j);
-				minimal_value = cell_entropy;
-			}
+			minimal_cell_position = i;
+			minimal_value = cell_entropy;
 		}
 	}
 
@@ -99,9 +96,9 @@ float TileMapGenerator::compute_cell_entropy(const Tile& cell) const
 	return entropy;
 }
 
-void TileMapGenerator::collapse_cell(const std::pair<int, int>& position)
+void TileMapGenerator::collapse_cell(const int position)
 {
-	Tile& tile = m_tile_map[position.first][position.second];
+	Tile& tile = m_tile_map[position];
 
 	string selected_tile = random_domain_tile(tile);
 
@@ -154,39 +151,39 @@ void TileMapGenerator::recalculate_constraints(TileMap& cells, std::deque<QueueE
 	}
 }
 
-std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_domain(const std::pair<int, int>& position, TileMap& cells)
+std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_domain(const int position, TileMap& cells)
 {
-	const int& i = position.first;
-	const int& j = position.second;
-	Tile& tile = cells[i][j];
+	const Tile& tile = cells[position];
 	std::deque<QueueEntry> changed_tiles;
 
-	// bottom neighbor
-	if (i + 1 < cells.size()
-		&& update_neighbor_domain(tile, cells[i+1][j], TileSet::TOP_SIDE_KEY))
+	const int& row = position / m_output_width;
+	const int& col = position % m_output_width;
+
+	if (const int bottom_idx = idx(row+1, col); row + 1 < m_output_height
+		&& update_neighbor_domain(tile, cells[bottom_idx], TileSet::TOP_SIDE_KEY))
 	{
-		changed_tiles.push_back(QueueEntry{cells[i+1][j], std::make_pair(i+1, j)});
+		changed_tiles.push_back(QueueEntry{cells[bottom_idx], bottom_idx});
 	}
 
 	// top neighbor
-	if (i - 1 >= 0
-		&& update_neighbor_domain(tile, cells[i-1][j], TileSet::BOTTOM_SIDE_KEY))
+	if (const int top_idx = idx(row-1, col); row - 1 >= 0
+		&& update_neighbor_domain(tile, cells[top_idx], TileSet::BOTTOM_SIDE_KEY))
 	{
-		changed_tiles.push_back(QueueEntry{cells[i-1][j], std::make_pair(i-1, j)});
+		changed_tiles.push_back(QueueEntry{cells[top_idx], top_idx});
 	}
 
 	// right neighbor
-	if (j + 1 < cells[i].size()
-		&& update_neighbor_domain(tile, cells[i][j+1], TileSet::LEFT_SIDE_KEY))
+	if (const int right_idx = idx(row, col+1); col + 1 < m_output_width
+		&& update_neighbor_domain(tile, cells[right_idx], TileSet::LEFT_SIDE_KEY))
 	{
-		changed_tiles.push_back(QueueEntry{cells[i][j+1], std::make_pair(i, j+1)});
+		changed_tiles.push_back(QueueEntry{cells[right_idx], right_idx});
 	}
 
 	// left neighbor
-	if (j - 1 >= 0
-		&& update_neighbor_domain(tile, cells[i][j-1], TileSet::RIGHT_SIDE_KEY))
+	if (const int left_idx = idx(row, col-1); col - 1 >= 0
+		&& update_neighbor_domain(tile, cells[left_idx], TileSet::RIGHT_SIDE_KEY))
 	{
-		changed_tiles.push_back(QueueEntry{cells[i][j-1], std::make_pair(i, j-1)});
+		changed_tiles.push_back(QueueEntry{cells[left_idx], left_idx});
 	}
 
 	return changed_tiles;
@@ -235,19 +232,16 @@ bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& ne
 int TileMapGenerator::count_remaining_cells(const TileMap& cells)
 {
 	int remaining_cells = 0;
-	for (auto& row : cells)
+	for (auto& cell : cells)
 	{
-		for (auto& cell : row)
+		if (cell.is_domain_empty())
 		{
-			if (cell.is_domain_empty())
-			{
-				return 0;
-			}
+			return 0;
+		}
 
-			if (!cell.is_collapsed())
-			{
-				remaining_cells++;
-			}
+		if (!cell.is_collapsed())
+		{
+			remaining_cells++;
 		}
 	}
 
@@ -260,27 +254,28 @@ void TileMapGenerator::draw_tile_map() const
 	const int tile_width = 10*mult;
 	const int tile_height = 10*mult;
 
-	int image_width = tile_width * m_tile_map[0].size();
-
 	int x = 0;
 	int y = 0;
 
-	for (const auto& row : m_tile_map) {
-		for (const auto& tile : row) {
-			std::optional<string> tile_name = tile.get_collapsed_name();
+	for (int i = 0; i < m_tile_map.size(); i++)
+	{
+		const Tile& tile = m_tile_map[i];
+		std::optional<string> tile_name = tile.get_collapsed_name();
 
-			ofSetColor(ofColor::white);
-			if (tile_name.has_value()) {
-				draw_tile(tile_name.value(), x, y, tile_width, tile_height);
-			}
-			else {
-				draw_multiple_possibilities(tile, x, y, tile_width, tile_height);
-			}
-
-			x = (x + tile_width) % image_width;
+		ofSetColor(ofColor::white);
+		if (tile_name.has_value()) {
+			draw_tile(tile_name.value(), x, y, tile_width, tile_height);
+		}
+		else {
+			draw_multiple_possibilities(tile, x, y, tile_width, tile_height);
 		}
 
-		y = y + tile_height;
+		x += tile_width;
+
+		if (i % m_output_width == m_output_width - 1) {
+			x = 0;
+			y += tile_height;
+		}
 	}
 }
 
