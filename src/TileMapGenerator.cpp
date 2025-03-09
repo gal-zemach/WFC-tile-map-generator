@@ -159,37 +159,37 @@ std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_doma
 	const int& row = idx / m_output_width;
 	const int& col = idx % m_output_width;
 
-	if (const int bottom_idx = get_idx(row+1, col); row + 1 < m_output_height
-		&& update_neighbor_domain(tile, cells[bottom_idx], TileSet::TOP_SIDE_KEY))
+	if (const std::optional<int> bottom_idx = get_idx(row+1, col); bottom_idx.has_value()
+		&& update_neighbor_domain(tile, cells[bottom_idx.value()], TileSet::TOP_SIDE_IDX))
 	{
-		changed_tiles.push_back(QueueEntry{cells[bottom_idx], bottom_idx});
+		changed_tiles.push_back(QueueEntry{cells[bottom_idx.value()], bottom_idx.value()});
 	}
 
 	// top neighbor
-	if (const int top_idx = get_idx(row-1, col); row - 1 >= 0
-		&& update_neighbor_domain(tile, cells[top_idx], TileSet::BOTTOM_SIDE_KEY))
+	if (const std::optional<int> top_idx = get_idx(row-1, col); top_idx.has_value()
+		&& update_neighbor_domain(tile, cells[top_idx.value()], TileSet::BOTTOM_SIDE_IDX))
 	{
-		changed_tiles.push_back(QueueEntry{cells[top_idx], top_idx});
+		changed_tiles.push_back(QueueEntry{cells[top_idx.value()], top_idx.value()});
 	}
 
 	// right neighbor
-	if (const int right_idx = get_idx(row, col+1); col + 1 < m_output_width
-		&& update_neighbor_domain(tile, cells[right_idx], TileSet::LEFT_SIDE_KEY))
+	if (const std::optional<int> right_idx = get_idx(row, col+1); right_idx.has_value()
+		&& update_neighbor_domain(tile, cells[right_idx.value()], TileSet::LEFT_SIDE_IDX))
 	{
-		changed_tiles.push_back(QueueEntry{cells[right_idx], right_idx});
+		changed_tiles.push_back(QueueEntry{cells[right_idx.value()], right_idx.value()});
 	}
 
 	// left neighbor
-	if (const int left_idx = get_idx(row, col-1); col - 1 >= 0
-		&& update_neighbor_domain(tile, cells[left_idx], TileSet::RIGHT_SIDE_KEY))
+	if (const std::optional<int> left_idx = get_idx(row, col-1); left_idx.has_value()
+		&& update_neighbor_domain(tile, cells[left_idx.value()], TileSet::RIGHT_SIDE_IDX))
 	{
-		changed_tiles.push_back(QueueEntry{cells[left_idx], left_idx});
+		changed_tiles.push_back(QueueEntry{cells[left_idx.value()], left_idx.value()});
 	}
 
 	return changed_tiles;
 }
 
-bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& neighbor, const string& direction_from_neighbor)
+bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& neighbor, const int direction_from_neighbor)
 {
 	if (neighbor.domain.size() == 1)
 	{
@@ -199,7 +199,7 @@ bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& ne
 	std::deque<string> unsupported_neighbor_tiles;
 	for (const auto& neighbor_tile_name : neighbor.domain)
 	{
-		vector<string> neighbor_adjacency_rules = m_tile_set.adjacency.at(neighbor_tile_name).at(direction_from_neighbor);
+		vector<string> neighbor_adjacency_rules = m_tile_set.adjacency.at(neighbor_tile_name)[direction_from_neighbor];
 		bool is_supported = false;
 
 		for (auto& allowed_neighbor : neighbor_adjacency_rules)

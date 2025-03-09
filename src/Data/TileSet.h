@@ -18,16 +18,17 @@ class TileSet
 {
 public:
 	// Constants with keys for the tiles' sides in the adjacency list
-	static constexpr const char* TOP_SIDE_KEY = "top";
-	static constexpr const char* BOTTOM_SIDE_KEY = "bottom";
-	static constexpr const char* LEFT_SIDE_KEY = "left";
-	static constexpr const char* RIGHT_SIDE_KEY = "right";
+	static constexpr int NUMBER_OF_SIDES = 4;
+	static constexpr int TOP_SIDE_IDX = 0;
+	static constexpr int RIGHT_SIDE_IDX = 1;
+	static constexpr int BOTTOM_SIDE_IDX = 2;
+	static constexpr int LEFT_SIDE_IDX = 3;
 
 	// Maps tile name to it's image
 	using TileImages = unordered_map<string, ofImage>;
 	
 	// Maps tile name to its adjacency list in the for of rules[tile_name][side_constant] = allowed_tile_names_vector
-	using AdjacencyRules = unordered_map<string, unordered_map<string, vector<string>>>;
+	using AdjacencyRules = unordered_map<string, vector<vector<string>>>;
 
 	/**
 	 * @brief Constructs a TileSet by loading images and adjacency rules.
@@ -40,18 +41,21 @@ public:
 	TileSet(const string& xml_path, const string& images_folder_path);
 
 	float get_weight(const string& tile_name) const {return m_set_data.tiles.at(tile_name).weight;}
-	
+
+	static int rotate_side(const int side_idx, const int degrees) {return (side_idx + degrees/90) % NUMBER_OF_SIDES;}
+	static int opposite_side(const int side_idx) {return rotate_side(side_idx, 180);}
+
 private:
 	static constexpr float DEFAULT_WEIGHT = 1;
+
+	inline static unordered_map<string, int> SIDES{
+		{"top", TOP_SIDE_IDX}, {"right", RIGHT_SIDE_IDX}, {"bottom", BOTTOM_SIDE_IDX}, {"left", LEFT_SIDE_IDX}
+	};
 
 	static constexpr const char* SYMMETRY_TYPE_I = "I";
 	static constexpr const char* SYMMETRY_TYPE_L = "L";
 	static constexpr const char* SYMMETRY_TYPE_T = "T";
 	static constexpr const char* SYMMETRY_TYPE_X = "X";
-
-	inline static const vector<string> SIDES{
-		TOP_SIDE_KEY, RIGHT_SIDE_KEY, BOTTOM_SIDE_KEY, LEFT_SIDE_KEY
-	};
 
 	inline static unordered_map<string, int> symmetry_type_to_rotations{
 				{SYMMETRY_TYPE_I, 2}, {SYMMETRY_TYPE_L, 4}, {SYMMETRY_TYPE_T, 4}, {SYMMETRY_TYPE_X, 1}
@@ -61,7 +65,7 @@ private:
 	{
 		string symmetry_type;
 		float weight;
-		unordered_map<string, string> edges;
+		vector<string> edges;
 	};
 
 	struct SetData
@@ -78,6 +82,6 @@ private:
 	static AdjacencyRules load_adjacency_rules(const SetData& set_data);
 	static void print_rules(const AdjacencyRules& rules);
 
-	static unordered_map<string, string> rotate_edges_map(const unordered_map<string, string>& edges_map, int rotate_by);
+	static vector<string> rotate_edges_map(const vector<string>& edges_map, int rotate_by);
 	static void add_tile_rotations(SetData& set_data, const pair<string, TileData>& tile_data);
 };

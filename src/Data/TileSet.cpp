@@ -54,14 +54,17 @@ TileSet::SetData TileSet::parse_set_data(const string& xml_path)
 		string weight_str = tile.attribute(WEIGHT_ATTRIBUTE_NAME).value();
 		float weight = weight_str.empty() ? DEFAULT_WEIGHT : atof(weight_str.c_str());
 
-		unordered_map<string, string> edges_map;
+		vector<string> edges_map{NUMBER_OF_SIDES};
 		xml_node edges_parent = tile.child(EDGES_ATTRIBUTE_NAME);
 
 		for (xml_node edge : edges_parent.children(EDGE_ATTRIBUTE_NAME))
 		{
 			string edge_side = edge.attribute(SIDE_ATTRIBUTE_NAME).value();
+
+			int edge_idx = SIDES.at(edge_side);
+
 			string edge_value = edge.attribute(VALUE_ATTRIBUTE_NAME).value();
-			edges_map[edge_side] = edge_value;
+			edges_map[edge_idx] = edge_value;
 		}
 
 		set_data.tiles[tile_name] = TileData{symmetry_type, weight, edges_map};
@@ -91,11 +94,11 @@ TileSet::TileImages TileSet::load_set_images(const string& images_folder_path)
 	return images;
 }
 
-unordered_map<string, string> TileSet::rotate_edges_map(const unordered_map<string, string>& edges_map, int rotate_by)
+vector<string> TileSet::rotate_edges_map(const vector<string>& edges_map, int rotate_by)
 {
-	unordered_map<string, string> shifted_edges;
-	for (int i = 0; i < SIDES.size(); i++) {
-		shifted_edges[SIDES[(i + rotate_by/90) % SIDES.size()]] = edges_map.at(SIDES[i]);
+	vector<string> shifted_edges{NUMBER_OF_SIDES};
+	for (int i = 0; i < shifted_edges.size(); i++) {
+		shifted_edges[rotate_side(i, rotate_by)] = edges_map[i];
 	}
 
 	return shifted_edges;
@@ -146,17 +149,22 @@ TileSet::SetData TileSet::add_rotated_tiles(const SetData& set_data)
 TileSet::AdjacencyRules TileSet::load_adjacency_rules(const SetData& set_data)
 {
 	AdjacencyRules rules;
-	for (const auto& set_tile : set_data.tiles)
+	for (const auto& [tile_name, tile_data] : set_data.tiles)
 	{
-		for (const auto& neighbor_tile : set_data.tiles)
+		for (const auto& [neighbor_tile_name, neighbor_tile_data] : set_data.tiles)
 		{
-			for (int i=0; i < SIDES.size(); i++)
+			for (int i=0; i < NUMBER_OF_SIDES; i++)
 			{
-				string set_tile_edge_value = set_tile.second.edges.at(SIDES[i]);
-				string neighbor_tile_opposite_edge_value = neighbor_tile.second.edges.at(SIDES[(i+2) % SIDES.size()]);
+				string set_tile_edge_value = tile_data.edges[i];
+				string neighbor_tile_opposite_edge_value = neighbor_tile_data.edges[opposite_side(i)];
 				if (set_tile_edge_value == neighbor_tile_opposite_edge_value)
 				{
-					rules[set_tile.first][SIDES[i]].push_back(neighbor_tile.first);
+					if (!rules.contains(tile_name))
+					{
+						rules[tile_name] = vector<vector<string>>(NUMBER_OF_SIDES);
+					}
+
+					rules[tile_name][i].push_back(neighbor_tile_name);
 				}
 			}
 		}
@@ -171,9 +179,11 @@ void TileSet::print_rules(const AdjacencyRules& rules)
 	for (const auto& [tile, sides] : rules)
 	{
 		std::cout << tile << ":\n";
-		for (const auto& [side, neighbors] : sides)
+		for (int j = 0; j < NUMBER_OF_SIDES; j++)
 		{
-			std::cout << " " << side << ": [";
+			vector<string> neighbors = sides[j];
+
+			std::cout << " " << j << ": [";
 			for (size_t i = 0; i < neighbors.size(); ++i)
 			{
 				std::cout << neighbors[i];
