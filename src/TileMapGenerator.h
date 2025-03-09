@@ -37,7 +37,12 @@ private:
 	TileMap m_tile_map;
 	SupportCount m_support_count;
 
-	int get_idx(const int row, const int col) const {return row * m_output_width + col;}
+	std::optional<int> get_idx(const int row, const int col) const {
+		if (row < 0 || row >= m_output_height || col < 0 || col >= m_output_width) {
+			return std::nullopt;
+		}
+		return row * m_output_width + col;
+	}
 
 	int get_next_cell_to_collapse(TileMap& cells) const;
 
@@ -51,7 +56,7 @@ private:
 
 	deque<QueueEntry> update_neighbors_domain(int idx, TileMap& cells);
 
-	bool update_neighbor_domain(const Tile& current_tile, Tile& neighbor, const string& direction_from_neighbor);
+	bool update_neighbor_domain(const Tile& current_tile, Tile& neighbor, const int direction_from_neighbor);
 
 	int count_remaining_cells(const TileMap& cells);
 
