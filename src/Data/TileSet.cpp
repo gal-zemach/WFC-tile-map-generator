@@ -161,10 +161,10 @@ TileSet::AdjacencyRules TileSet::load_adjacency_rules(const SetData& set_data)
 				{
 					if (!rules.contains(tile_name))
 					{
-						rules[tile_name] = vector<vector<string>>(NUMBER_OF_SIDES);
+						rules[tile_name] = vector<unordered_set<string>>(NUMBER_OF_SIDES);
 					}
 
-					rules[tile_name][i].push_back(neighbor_tile_name);
+					rules[tile_name][i].insert(neighbor_tile_name);
 				}
 			}
 		}
@@ -181,21 +181,14 @@ void TileSet::print_rules(const AdjacencyRules& rules)
 		std::cout << tile << ":\n";
 		for (int j = 0; j < NUMBER_OF_SIDES; j++)
 		{
-			vector<string> neighbors = sides[j];
+			unordered_set<string> neighbors = sides[j];
 
 			std::cout << " " << j << ": [";
-			for (size_t i = 0; i < neighbors.size(); ++i)
+			for (const string& neighbor : neighbors)
 			{
-				std::cout << neighbors[i];
-				if (i < neighbors.size() - 1)
-				{
-					std::cout << ", ";
-				}
-				else
-				{
-					std::cout << "]\n";
-				}
+				std::cout << neighbor << ", ";
 			}
+			std::cout << "]\n";
 		}
 	}
 }

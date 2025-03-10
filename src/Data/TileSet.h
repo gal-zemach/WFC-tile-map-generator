@@ -3,12 +3,15 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <unordered_set>
 
 #include "ofMain.h"
 
 using std::string;
 using std::vector;
 using std::unordered_map;
+
+using std::unordered_set;
 
 /**
  * @class TileSet
@@ -28,7 +31,7 @@ public:
 	using TileImages = unordered_map<string, ofImage>;
 	
 	// Maps tile name to its adjacency list in the for of rules[tile_name][side_constant] = allowed_tile_names_vector
-	using AdjacencyRules = unordered_map<string, vector<vector<string>>>;
+	using AdjacencyRules = unordered_map<string, vector<unordered_set<string>>>;
 
 	/**
 	 * @brief Constructs a TileSet by loading images and adjacency rules.
