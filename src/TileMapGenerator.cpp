@@ -159,7 +159,7 @@ std::deque<TileMapGenerator::QueueEntry> TileMapGenerator::update_neighbors_doma
 	for (int side = 0; side < TileSet::NUMBER_OF_SIDES; ++side)
 	{
 		if (const std::optional<int> neighbor_idx = get_neighbor_idx(idx, side); neighbor_idx.has_value()
-		&& update_neighbor_domain(idx, neighbor_idx.value(), TileSet::opposite_side(side)))
+		&& update_neighbor_domain(tile, cells[neighbor_idx.value()], TileSet::opposite_side(side)))
 		{
 			changed_tiles.push_back(QueueEntry{cells[neighbor_idx.value()], neighbor_idx.value()});
 		}
@@ -178,7 +178,7 @@ bool TileMapGenerator::update_neighbor_domain(const Tile& current_tile, Tile& ne
 	std::deque<string> unsupported_neighbor_tiles;
 	for (const auto& neighbor_tile_name : neighbor.domain)
 	{
-		vector<string> neighbor_adjacency_rules = m_tile_set.adjacency.at(neighbor_tile_name)[direction_from_neighbor];
+		unordered_set<string> neighbor_adjacency_rules = m_tile_set.adjacency.at(neighbor_tile_name)[direction_from_neighbor];
 		bool is_supported = false;
 
 		for (auto& allowed_neighbor : neighbor_adjacency_rules)
