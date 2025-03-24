@@ -5,7 +5,7 @@
 using std::string;
 
 const string SET_TILES_FOLDER_PATH = "Tilesets/Knots";
-const string SET_XML_PATH = "Tilesets/Knots_v2.xml";
+const string SET_XML_PATH = "Tilesets/Knots.xml";
 
 //--------------------------------------------------------------
 void ofApp::setup(){

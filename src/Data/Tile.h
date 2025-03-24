@@ -19,11 +19,7 @@ public:
 	unordered_set<string> domain;
 	
 	Tile(const unordered_set<string>& possible_tiles) : domain(possible_tiles){}
-	
-	//todo: choose approach here
-	void remove_possible_tile();
-	void update_constraints();
-	
+
 	/**
 	 * @brief Returns true iff one possible tile remains for this tile
 	 */
