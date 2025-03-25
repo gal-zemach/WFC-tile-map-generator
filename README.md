@@ -1,17 +1,17 @@
 # Wave Function Collapse (WFC) in C++
 
-A simple C++ implementation of the Wave Function Collapse algorithm for **procedural tile generation**.
-This project demonstrates how local constraints and probabilistic choices can create unique 2D layouts with minimal hardcoding.
-Drawing to the screen is done using openFrameworks.
+A simple C++ implementation of the Wave Function Collapse algorithm for **procedural tile generation**.  
+This project demonstrates how local constraints and probabilistic choices can create unique 2D layouts with minimal hardcoding.  
+Drawing to the screen is done using openFrameworks.  
 
-![WFC Demo Screenshot](./assets/DemoGif/KnotsTilesetDemo.gif)
+<img src="./assets/DemoGif/KnotsTilesetDemo.gif" alt="WFC Demo Screenshot" width="400"/>
 
 ## Table of Contents
 1. [Overview](#overview)
 2. [Features](#features)
 3. [Project Structure](#project-structure)
 4. [Future Improvements](#future-improvements)
-5. [References](#references)
+5. [Credits](#credits)
 6. [License](#license)
 
 ---
@@ -37,6 +37,7 @@ Wave Function Collapse (WFC) is a constraint-solving algorithm inspired by quant
 ---
 
 ## Project Structure
+```
 WFC-tile-map-generator/
 ├── README.md
 ├── src/
@@ -59,6 +60,7 @@ WFC-tile-map-generator/
             └── empty.png
             └── line.png
             └── t.png
+```
 
 - **README.md**: This file, explaining the project.
 - **ofApp**: Actual entry point for the tile map generation and drawing.
@@ -70,10 +72,10 @@ WFC-tile-map-generator/
 ---
 
 ## Credits
-- **Tile Set**
+**Tile Set**
 - This project uses a slightly modified version of the [**Knots Set**](https://github.com/mxgmn/WaveFunctionCollapse/) by Maxim Gumin.
 
-- **Algorithm Reference**
+**Algorithm Reference**
 - [Wave Function Collapse Main GitHub](https://github.com/mxgmn/WaveFunctionCollapse/) by Maxim Gumin.
 - [Simple WFC Explanation](https://www.boristhebrave.com/2020/04/13/wave-function-collapse-explained/) by BorisTheBrave.
 
@@ -87,9 +89,8 @@ WFC-tile-map-generator/
 ---
 
 ## License
-MIT License
-Copyright (c) 2025 Gal Zemach
-Permission is hereby granted, free of charge, to any person obtaining a copy
-
+MIT License  
+Copyright (c) 2025 Gal Zemach  
+Permission is hereby granted, free of charge, to any person obtaining a copy  
 
 ---
